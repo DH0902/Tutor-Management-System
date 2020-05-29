@@ -1,0 +1,655 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+struct Tutor {
+	int TutorID;
+	string Tutorname, TuitionCentreName, TuitionCentreCode, SubjectName, SubjectCode, Address, dateJOINED, dateTERMINATED, Location, ContactNo;
+	double HourlyPayRate, Rating;
+	Tutor* next;
+	Tutor* back;
+}*head, *tail, *temp, *prev;
+
+Tutor* createnewnode(int id, string name, string tuition_code, string tuition_name, double payrate, string phonenumber, string address, string location, string datejoin, string dateterminate,  string subject_code, string subject_name, double rating) {
+	Tutor* newnode = new Tutor;
+	newnode->TutorID = id;
+	newnode->Tutorname = name;
+	newnode->TuitionCentreCode = tuition_code;
+	newnode->TuitionCentreName = tuition_name;
+	newnode->HourlyPayRate = payrate;
+	newnode->ContactNo = phonenumber;
+	newnode->Address = address;
+	newnode->Location = location;
+	newnode->dateJOINED = datejoin;
+	newnode->dateTERMINATED = dateterminate;
+	newnode->SubjectCode = subject_code;
+	newnode->SubjectName = subject_name;
+	newnode->Rating = rating;
+	newnode->next = NULL;
+	newnode->back = NULL;
+	return newnode;
+}
+
+Tutor* MergeSortedList(Tutor * head1, Tutor * head2) {                         
+	Tutor* result = NULL;                                                      
+	if (head1 == NULL) {                                                       
+		return head2;
+	}
+	if (head2 == NULL) {                                                       
+		return head1;                                                          
+	}
+	if (head1->TutorID < head2->TutorID) {                                     
+		head1->next = MergeSortedList(head1->next, head2);                     
+		head1->next->back = head1;
+		head1->back = NULL;
+		return head1;
+	}
+	else {																		
+		head2->next = MergeSortedList(head1, head2->next);						
+		head2->next->back = head2;                                              
+		head2->back = NULL;														
+		return head2;                                                           
+	}																			
+}    
+
+Tutor* MergePayRate(Tutor* head1, Tutor* head2) {
+	Tutor* result = NULL;
+	if (head1 == NULL) {
+		return head2;
+	}
+	if (head2 == NULL) {
+		return head1;
+	}
+	if (head1->HourlyPayRate < head2->HourlyPayRate) {
+		head1->next = MergePayRate(head1->next, head2);
+		head1->next->back = head1;
+		head1->back = NULL;
+		return head1;
+	}
+	else {
+		head2->next = MergePayRate(head1, head2->next);
+		head2->next->back = head2;
+		head2->back = NULL;
+		return head2;
+	}
+}
+
+Tutor* MergeRating(Tutor* head1, Tutor* head2) {
+	Tutor* result = NULL;
+	if (head1 == NULL) {
+		return head2;
+	}
+	if (head2 == NULL) {
+		return head1;
+	}
+	if (head1->Rating < head2->Rating) {
+		head1->next = MergeRating(head1->next, head2);
+		head1->next->back = head1;
+		head1->back = NULL;
+		return head1;
+	}
+	else {
+		head2->next = MergeRating(head1, head2->next);
+		head2->next->back = head2;
+		head2->back = NULL;
+		return head2;
+	}
+}
+
+void splitList(Tutor* src, Tutor** fRef, Tutor** bRef) {          
+	Tutor* fast;                
+	Tutor* slow;                            
+	slow = src;                                  
+	fast = src->next;							
+									
+	while (fast != NULL) {                  
+		fast = fast->next;
+		if (fast != NULL) {                
+			slow = slow->next;             
+			fast = fast->next;			 
+		}
+	}                                    
+
+	*fRef = src;                         
+	*bRef = slow->next;                  
+	slow->next = NULL;                  
+}
+
+void insert_alwaystoFront(Tutor **head, int id, string name, string tuition_code, string tuition_name, double payrate, string phonenumber, string address, string location, string datejoin, string dateterminate, string subject_code, string subject_name, double rating) {
+	Tutor* newnode = createnewnode(id, name, tuition_code, tuition_name, payrate,phonenumber, address, location, datejoin, dateterminate, subject_code, subject_name, rating);
+
+	if (*head == NULL) {            
+		(*head) = tail = newnode;
+	}
+	else {
+		newnode->next = *head;
+		(*head)->back = newnode;
+		(*head) = newnode;
+	}
+}
+
+void printrecord(Tutor*head) {
+	Tutor* temp = head;
+
+	while (temp != NULL) {
+		std::cout << temp->TutorID << " | ";
+		std::cout << temp->Tutorname << " | ";
+		std::cout << temp->TuitionCentreCode << " | ";
+		std::cout << temp->TuitionCentreName << " | ";
+		std::cout << temp->HourlyPayRate << " | ";
+		std::cout << temp->ContactNo << " | ";
+		std::cout << temp->Address << " | ";
+		std::cout << temp->Location << " | ";
+		std::cout << temp->dateJOINED << " | ";
+		std::cout << temp->dateTERMINATED << " | ";
+		std::cout << temp->SubjectCode << " | ";
+		std::cout << temp->SubjectName << " | ";
+		std::cout << temp->Rating << " | ";
+		temp = temp->next;
+		std::cout << endl;
+	}
+}
+
+void printmenu() {
+	std::cout << "1 - Add New Tutor." << endl;
+	std::cout << "2 - Search Tutor" << endl;
+	std::cout << "3 - View Tutor Records.." << endl;
+	std::cout << "4 - Exit." << endl;
+	std::cout << endl;
+	std::cout << "Please enter your selection : ";
+}
+
+void sortbasedonHourlyPayRate(Tutor ** head) {
+	Tutor* temp = *head;
+	Tutor* a = NULL;
+	Tutor* b = NULL;
+
+	if (temp == NULL || temp->next == NULL) {
+		return;
+	}
+
+	splitList(temp, &a, &b);
+	sortbasedonHourlyPayRate(&a);
+	sortbasedonHourlyPayRate(&b);
+	*head = MergePayRate(a, b);
+}
+
+void sortbasedonRating(Tutor**head) {
+	Tutor* temp = *head;
+	Tutor* a = NULL;
+	Tutor* b = NULL;
+
+	if (temp == NULL || temp->next == NULL) {
+		return;
+	}
+
+	splitList(temp, &a, &b);
+	sortbasedonRating(&a);
+	sortbasedonRating(&b);
+	*head = MergeRating(a, b);
+}
+
+void sortbasedonID(Tutor ** head) {                          
+	Tutor * temp = *head;
+	Tutor * a = NULL;
+	Tutor * b = NULL;
+
+	if (temp == NULL || temp->next == NULL) {                
+		return;
+	}
+
+	splitList(temp, &a, &b);                                 
+	sortbasedonID(&a);                                       
+	sortbasedonID(&b);
+	*head = MergeSortedList(a,b);                            
+}
+
+void Delete(Tutor* head) {
+	int userinput;
+	std::cout << "Enter the Tutor ID you want to delete : " << endl;
+	std::cin >> userinput;
+
+	if (userinput == head->TutorID) {                               
+		string someString1 = (head->dateJOINED);
+		string someString2 = (head->dateTERMINATED);
+		if (someString2 != "-") {									
+			int value1 = stoi(someString1.substr(0, 2));				
+			int value2 = stoi(someString2.substr(0, 2));
+			int value3 = stoi(someString1.substr(4));
+			int value4 = stoi(someString2.substr(4));
+			int different = value2 - value1;                            
+			int different2 = value4 - value3;							
+		
+			if (different >= 6) {										
+				temp = head->next;
+				if (temp == NULL) {
+					tail = NULL;
+				}
+				else {
+					temp->back = NULL;
+				}
+				std::cout << "Deleted Tutor ID : " << head->TutorID << endl;
+				delete (head);
+				head = temp;
+			}
+			else {
+				if (different2 >= 1) {									
+					temp = head->next;
+					if (temp == NULL) {
+						tail = NULL;
+					}
+					else {
+						temp->back = NULL;
+					}
+					std::cout << "Deleted Tutor ID : " << head->TutorID << endl;
+					delete (head);
+					head = temp;
+				}
+				else {													
+					std::cout << "The selected Tutor ID cannot be deleted because the duration is not greater than 6 months." << endl;
+				}
+			}
+		}
+		else {
+			std::cout << "The Tutor is new. He can't be deleted right now." << endl;
+		}
+	}
+	else {                                                         
+		temp = head;
+		Tutor* prev = temp->next;
+
+		while (userinput != temp->TutorID) {                       
+			prev = temp;
+			temp = temp->next;
+
+			if (temp == NULL) {
+				std::cout << "No ID Found!" << endl;
+				return;
+			}
+		}															
+
+		string someString3 = temp->dateJOINED;
+		string someString4 = temp->dateTERMINATED;
+		if (someString4 != "-") {									
+			int value1 = stoi(someString3.substr(4));
+			int value2 = stoi(someString4.substr(4));
+			int value3 = stoi(someString3.substr(0, 2));
+			int value4 = stoi(someString4.substr(0, 2));
+			int different = value4 - value3;
+			int different2 = value2 - value1;
+											
+			if (different >= 6) {										
+				prev->next = temp->next;
+				if (temp->next != NULL) {
+					temp->next->back = prev;
+				}
+				else {
+					Tutor* tail = prev;
+				}
+				std::cout << "Deleted ID : " << temp->TutorID << endl;
+				delete(temp);
+			}
+			else if (different2 >= 1) {                               
+				prev->next = temp->next;
+				if (temp->next != NULL) {
+					temp->next->back = prev;
+				}
+				else {
+					Tutor* tail = prev;
+				}
+				std::cout << "Deleted ID : " << temp->TutorID << endl;
+				delete(temp);
+			}
+			else {														
+				std::cout << "The selected Tutor ID cannot be deleted because the duration is not greater than 6 months." << endl;
+				}
+			}
+		else {
+			std::cout << "The Tutor is new. He can't be deleted right now." << endl;
+		}
+	}
+	std::cout << endl;
+	printrecord(head);
+}
+
+void searchID(Tutor ** head, int userinput) {
+	Tutor * temp = *head;
+	while (temp != NULL) {
+		if (temp->TutorID == userinput) {                             
+			std::cout << temp->TutorID << " | ";
+			std::cout << temp->Tutorname << " | ";
+			std::cout << temp->TuitionCentreCode << " | ";
+			std::cout << temp->TuitionCentreName << " | ";
+			std::cout << temp->HourlyPayRate << " | ";
+			std::cout << temp->ContactNo << " | ";
+			std::cout << temp->Address << " | ";
+			std::cout << temp->Location << " | ";
+			std::cout << temp->dateJOINED << " | ";
+			std::cout << temp->dateTERMINATED << " | ";
+			std::cout << temp->SubjectCode << " | ";
+			std::cout << temp->SubjectName << " | ";
+			std::cout << temp->Rating << " | ";
+			std::cout << endl;
+		}
+		temp = temp->next;
+	}
+}
+
+void searchRating(Tutor** head, double input) {
+	Tutor* temp = *head;
+	while (temp != NULL) {
+		if (temp->Rating == input) {                                              
+			std::cout << temp->TutorID << " | ";
+			std::cout << temp->Tutorname << " | ";
+			std::cout << temp->TuitionCentreCode << " | ";
+			std::cout << temp->TuitionCentreName << " | ";
+			std::cout << temp->HourlyPayRate << " | ";
+			std::cout << temp->ContactNo << " | ";
+			std::cout << temp->Address << " | ";
+			std::cout << temp->Location << " | ";
+			std::cout << temp->dateJOINED << " | ";
+			std::cout << temp->dateTERMINATED << " | ";
+			std::cout << temp->SubjectCode << " | ";
+			std::cout << temp->SubjectName << " | ";
+			std::cout << temp->Rating << " | ";
+			std::cout << endl;
+		}
+		temp = temp->next;
+	}
+}
+
+void modify(Tutor ** head){
+	Tutor* temp = *head;
+	int userinput;
+	std::cout << "Enter Tutor ID : ";
+	std::cin >> userinput;
+	while (temp != NULL) {
+		if (temp->TutorID == userinput) {
+			std::cout << endl;
+			std::cout << "What kind of information you want to update ? " << endl;
+			std::cout << "\n1. Date Terminate" << endl;
+			std::cin >> temp->dateTERMINATED;
+			std::cout << "2. Hourly Pay Rate" << endl;
+			std::cin >> temp->HourlyPayRate;
+			std::cout << "3. Rating" << endl;
+			std::cin >> temp->Rating;
+			break;
+		}
+		temp = temp->next;
+	}
+	std::cout << endl;
+	std::cout << "Data after modify : " << endl;
+	std::cout << endl;
+	std::cout << temp->TutorID << " | ";
+	std::cout << temp->Tutorname << " | ";
+	std::cout << temp->TuitionCentreCode << " | ";
+	std::cout << temp->TuitionCentreName << " | ";
+	std::cout << temp->HourlyPayRate << " | ";
+	std::cout << temp->Address << " | ";
+	std::cout << temp->Location << " | ";
+	std::cout << temp->dateJOINED << " | ";
+	std::cout << temp->dateTERMINATED << " | ";
+	std::cout << temp->SubjectCode << " | ";
+	std::cout << temp->SubjectName << " | ";
+	std::cout << temp->Rating << " | ";
+	std::wcout << endl;
+}
+
+int main() {
+	struct Tutor* head = new Tutor;
+	struct Tutor* tail = new Tutor;
+	head = tail = NULL;
+
+	insert_alwaystoFront(&head,1, "Hareem", "TC02", "eXcel", 40.00, "0184534321","Pahang", "eXcel_Pahang","01062016", "-", "IDB", "Introduction to Database", 1.00);
+	insert_alwaystoFront(&head,2, "Jacqueline", "TC01", "eXcel", 70.00, "0173434343", "Johor", "eXcel_Johor","06072012", "12072012", "OODJ", "Object Oriented with Java", 4.00);
+	insert_alwaystoFront(&head,3, "Darwin", "TC03", "eXcel", 60.00, "0134340131", "Selangor", "eXcel_Selangor", "07112014", "-", "BM", "Business Management", 3.00);
+	insert_alwaystoFront(&head,4, "Derrick", "TC04", "eXcel", 50.00, "0194094309","Melaka", "eXcel_Melaka","01232017", "-", "CAMB", "Chemistry Analysis and Molecular Bonding", 2.00);
+	insert_alwaystoFront(&head,5, "Anita", "TC01", "eXcel", 40.00, "0103242343","Johor", "eXcel_Johor", "02252015", "08252015", "PP", "Python Programming", 1.00);
+	insert_alwaystoFront(&head,6, "James", "TC03", "eXcel", 80.00, "0170909452","Selangor", "eXcel_Selangor", "04222015", "-", "AF", "Accounting and Finance", 5.00);
+	insert_alwaystoFront(&head,7, "Diritha", "TC02", "eXcel", 70.00, "0124324354","Pahang", "eXcel_Pahang", "04172014", "10172014", "DSTR", "Data Structure", 4.00);
+	insert_alwaystoFront(&head,8, "Shamimi", "TC01", "eXcel", 80.00, "0124532908","Johor", "eXcel_Johor", "05112012", "11112012", "CCP", "Concurrent Programming", 5.00);
+	insert_alwaystoFront(&head,9, "Crystaline", "TC03", "eXcel", 50.00, "0129856983","Selangor", "eXcel_Selangor", "03212013", "-", "FBM", "Financial in Business Marketing", 2.00);
+	insert_alwaystoFront(&head,10, "Surendran", "TC04", "eXcel", 60.00, "0170435032","Melaka", "eXcel_Melaka", "02022017", "-", "AD", "Advanced Database", 3.00);
+
+	char x, another;
+	
+	std::cout << "*************************************" << endl;
+	std::cout << "****eXcel TUTOR MANAGEMENT SYSTEM****" << endl;
+	std::cout << "*************************************" << endl;
+	std::cout << endl;
+	
+	while (true) {
+		printmenu();
+		std::cin >> x;
+		switch (x) {
+		case '1':
+			another = 'Y';
+			while (another == 'Y' || another == 'y') {
+				string name, code, location, PhoneNumber, address , subject_code, subject_name, date1, date2 = "-";
+				string tuitionname = "eXcel";
+				int UserOption, UserOption2, id;
+				double payrate, rate = 0.00;
+				system("cls");
+				std::cout << "Enter Tutor ID : " << endl;
+				std::cin >> id;
+				std::cin.ignore();
+				std::cout << "\nEnter Tutor Name : " << endl;
+				getline(std::cin, name);
+				std::cout << "\nEnter Phone Number : " << endl;
+				getline(std::cin, PhoneNumber);
+				std::cin.ignore();
+				std::cout << "\nEnter Hourly Pay Rate : " << endl;
+				std::cin >> payrate;
+				std::cout << "\nEnter Tutor Join Date (in MM/DD/YYYY) : " << endl;
+				std::cin >> date1;
+				std::cout << "\nEnter Tuition Centre Code : " << endl;
+				std::cout << "1. TC01 - Johor" << endl;
+				std::cout << "2. TC02 - Pahang" << endl;
+				std::cout << "3. TC03 - Selangor" << endl;
+				std::cout << "4. TC04 - Melaka" << endl;
+				std::cout << "\nEnter a value : " << endl;
+				std::cin >> UserOption;
+				if (UserOption == 1) {
+					code = "TC01";
+					address = "Johor";
+					location = tuitionname + "_" + address;
+				}
+				else if (UserOption == 2) {
+					code = "TC02";
+					location = "Pahang";
+					location = tuitionname + "_" + address;
+				}
+				else if (UserOption == 3) {
+					code = "TC03";
+					address = "Selangor";
+					location = tuitionname + "_" + address;
+				}
+				else if (UserOption == 4) {
+					code = "TC04";
+					address = "Melaka";
+					location = tuitionname + "_" + address;
+				}
+				else {
+					std::cout << "You haven entered a wrong input.";
+				}
+				std::cout << "\nEnter subject teach by Tutor : "<< endl;
+				std::cout << "1. CCP - Concurrent Programming" << endl;
+				std::cout << "2. OODJ - Object Oriented with Java" << endl;
+				std::cout << "3. IDB - Introduction to Database" << endl;
+				std::cout << "4. BM - Business Management" << endl;
+				std::cout << "5. CAMB - Chemistry Analysis and Molecular Bonding" << endl;
+				std::cout << "6. PP - Python Programming" << endl;
+				std::cout << "7. AF - Accounting and Finanace" << endl;
+				std::cout << "8. DSTR - Data Structure" << endl;
+				std::cout << "9. FBM - Financial in Business Marketing" << endl;
+				std::cout << "10. AD - Advanced Database" << endl;
+				std::cout << "\nEnter a value : " << endl;
+				std::cin >> UserOption2;
+				if (UserOption2 == 1) {
+					subject_code = "CCP";
+					subject_name = "Concurrent Programming";
+				}
+				else if (UserOption2 == 2) {
+					subject_code = "OODJ";
+					subject_name = "Object Oriented with Java";
+				}
+				else if (UserOption2 == 3) {
+					subject_code = "IDB";
+					subject_name = "Introduction to Database";
+				}
+				else if (UserOption2 == 4) {
+					subject_code = "BM";
+					subject_name = "Business Management";
+				}
+				else if (UserOption2 == 5) {
+					subject_code = "CAMB";
+					subject_name = "Chemistry Analysis and Molecular Bonding";
+				}
+				else if (UserOption2 == 6) {
+					subject_code = "PP";
+					subject_name = "Python Programming";
+				}
+				else if (UserOption2 == 7) {
+					subject_code = "AF";
+					subject_name = "Accounting and Finance";
+				}
+				else if (UserOption2 == 8) {
+					subject_code = "DSTR";
+					subject_name = "Data Structure";
+				}
+				else if (UserOption2 == 9) {
+					subject_code = "FBM";
+					subject_name = "Financial in Business Marketing";
+				}
+				else if (UserOption2 == 10) {
+					subject_code = "AD";
+					subject_name = "Advanced Database";
+				}
+				else {
+					std::cout << "You have entered a wrong input.";
+				}
+				
+				insert_alwaystoFront(&head,id, name, code, tuitionname, payrate, PhoneNumber,address, location, date1, date2, subject_code, subject_name, rate);
+				std::cout << "\nAdd another record ? (Y/N)";
+				std::cin >> another;
+			}
+			break;
+		case '2':
+			system("cls");
+			int useroption,useroption2,useroption3;
+			another = 'Y';
+			while (another == 'Y' || another == 'y') {
+				std::cout << "Search a Tutor : " << endl;
+				std::cout << "1. Search by Tutor ID" << endl;
+				std::cout << "2. Search by Tutor Rating" << endl;
+				std::cout << "3. Return" << endl;
+				std::cout << "\nPlease select a value : ";
+				std::cin >> useroption2;
+				if (useroption2 == 1) {
+					std::cout << "\nEnter Tutor ID : ";
+					std::cin >> useroption;
+					searchID(&head, useroption);
+					std::cout << endl;
+					std::cout << "\n1. Edit the Tutor" << endl;
+					std::cout << "2. Delete the Tutor" << endl;
+					std::cout << "3. Return main page" << endl;
+					std::wcout << "\nPlease select a value : " << endl;
+					std::cin >> useroption3;
+					if (useroption3 == 1) {
+						modify(&head);
+					}
+					else if (useroption3 == 2) {
+						Delete(head);
+					}
+					else if (useroption3 == 3) {
+						break;
+					}
+				}
+				else if(useroption2 == 2) {
+					double userinput;
+					std::cout << "Enter Tutor Rating : ";
+					std::cin >> userinput;
+					searchRating(&head, userinput);
+					std::cout << endl;
+					std::cout << "\n1. Edit the Tutor" << endl;
+					std::cout << "2. Delete the Tutor" << endl;
+					std::cout << "3. Return main page" << endl;
+					std::wcout << "\nPlease select a value : " << endl;
+					std::cin >> useroption3;
+					if (useroption3 == 1) {
+						modify(&head);
+					}
+					else if (useroption3 == 2) {
+						Delete(head);
+					}
+					else if (useroption3 == 3) {
+						break;
+					}
+				}
+				else if (useroption2 == 3) {
+					break;
+				}
+				cout << endl;
+				system("pause");
+				std::cout << "Search another Tutor ? (Y/N) ";
+				std::cin >> another;
+				system("cls");
+			}
+			break;
+		case '3':
+			system("cls");
+			std::cout << "****View All Tutor Record****" << endl;
+			std::cout << endl;
+			printrecord(head);
+			std::cout << endl;
+			system("pause");
+			another = 'Y';
+			while (another == 'Y' || another =='y') {
+				int UserOption;
+				std::cout << "\nView record in : \n1. View tutor record based on Tutor ID \n2. View tutor record based on Hourly Pay Rate \n3. View tutor record based on Rating \n4. Return \n\nNoted the record will default in ascending order! \n\nEnter value : " << endl;
+				std::cin >> UserOption;
+				if (UserOption == 1) {
+					std::cout << endl;
+					sortbasedonID(&head);
+					std::cout << "Record after Sorted : " << endl;
+					printrecord(head);
+				}
+				else if (UserOption == 2) {
+					std::cout << endl;
+					sortbasedonHourlyPayRate(&head);
+					std::cout << "Record after Sorted : " << endl;
+					printrecord(head);
+				}
+				else if (UserOption == 3) {
+					std::cout << endl;
+					sortbasedonRating(&head);
+					std::cout << "Record after Sorted : " << endl;
+					printrecord(head);
+				}
+				else if (UserOption == 4) {
+					break;
+				}
+				else {
+					std::cout << "You have entered wrong input.";
+				}
+				cout << endl;
+				system("pause");
+				std::cout << endl;
+				std::cout << "View another record ? (Y/N)";
+				std::cin >> another;
+				system("cls");
+			}
+			break;
+		case '4':
+			std::cout << "Thank you for using the system.";
+			std::cout << endl;
+			std::cout << endl;
+			exit(0);
+		default:
+			std::cout << "Invalid input." << endl;
+			break;
+		}
+	}
+	return 0;
+}	
